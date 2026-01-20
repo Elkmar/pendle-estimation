@@ -16,7 +16,7 @@ const KNOWN_DATA = {
 };
 
 
-// Historical revenue data from Token Terminal (ACTUAL, not annualized)
+// Historical revenue data from DefiLlama (ACTUAL, not annualized)
 const HISTORICAL_REVENUE = [
   { year: '2023', revenue: 191_048, note: 'Early phase' },
   { year: '2024', revenue: 19_100_000, note: 'Growth year' },
@@ -25,7 +25,7 @@ const HISTORICAL_REVENUE = [
 
 // Default values based on January 2026 data
 const DEFAULTS = {
-  annualRevenue: 44_640_000,      // 2025 actual revenue from Token Terminal
+  annualRevenue: 44_640_000,      // 2025 actual revenue from DefiLlama
   pendlePrice: 5.00,              // Approximate current price
   totalSPendle: 10_000_000,       // New sPENDLE locked
   avgVePendleMultiplier: 2.0,     // ~1 year avg remaining → 2x, being conservative
@@ -213,7 +213,7 @@ function App() {
             </div>
             {liveData && (
               <p className="text-xs text-gray-500 mt-3 text-center">
-                2026 = {liveData.source} daily (${liveData.daily.toLocaleString()}) × 365 • Updated {new Date(liveData.fetchedAt).toLocaleDateString()}
+                2026 = {liveData.source} 30-day annualized (${formatNumber(liveData.annualized)}) • Updated {new Date(liveData.fetchedAt).toLocaleDateString()}
               </p>
             )}
           </div>
@@ -532,7 +532,7 @@ function App() {
 
           {/* Data Source Info */}
           <div className="text-center text-xs text-gray-500">
-            <p>Data from Token Terminal (historical) & DefiLlama (live)</p>
+            <p>Historical & live data from DefiLlama</p>
             <p className="mt-1">For educational purposes only. Not financial advice.</p>
           </div>
         </div>
