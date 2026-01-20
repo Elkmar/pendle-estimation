@@ -15,8 +15,6 @@ const KNOWN_DATA = {
   circulatingSupply: 162_000_000, // Approx circulating supply
 };
 
-// Calculate circulating minus vePENDLE (max that could stake as sPENDLE)
-const MAX_SPENDLE_AVAILABLE = KNOWN_DATA.circulatingSupply - KNOWN_DATA.vePendleLocked;
 
 // Historical revenue data from Token Terminal (ACTUAL, not annualized)
 const HISTORICAL_REVENUE = [
@@ -29,7 +27,7 @@ const HISTORICAL_REVENUE = [
 const DEFAULTS = {
   annualRevenue: 44_640_000,      // 2025 actual revenue from Token Terminal
   pendlePrice: 5.00,              // Approximate current price
-  sPendlePercent: 10,             // 10% of available supply as sPENDLE
+  totalSPendle: 10_000_000,       // New sPENDLE locked
   avgVePendleMultiplier: 2.0,     // ~1 year avg remaining → 2x, being conservative
   userAmount: 10_000,             // Example user stake
   userLockYears: 0,               // Default: new staker
@@ -108,12 +106,9 @@ function App() {
   const [annualRevenue, setAnnualRevenue] = useState(DEFAULTS.annualRevenue);
   const [pendlePrice, setPendlePrice] = useState(DEFAULTS.pendlePrice);
 
-  // Network supply parameters - use percentage instead of raw amount
-  const [sPendlePercent, setSPendlePercent] = useState(DEFAULTS.sPendlePercent);
+  // Network supply parameters
+  const [totalSPendle, setTotalSPendle] = useState(DEFAULTS.totalSPendle);
   const [avgVePendleMultiplier, setAvgVePendleMultiplier] = useState(DEFAULTS.avgVePendleMultiplier);
-
-  // Calculate actual sPENDLE from percentage
-  const totalSPendle = Math.round((sPendlePercent / 100) * MAX_SPENDLE_AVAILABLE);
 
   // User parameters
   const [userAmount, setUserAmount] = useState(DEFAULTS.userAmount);
@@ -152,7 +147,7 @@ function App() {
   const resetToDefaults = () => {
     setAnnualRevenue(DEFAULTS.annualRevenue);
     setPendlePrice(DEFAULTS.pendlePrice);
-    setSPendlePercent(DEFAULTS.sPendlePercent);
+    setTotalSPendle(DEFAULTS.totalSPendle);
     setAvgVePendleMultiplier(DEFAULTS.avgVePendleMultiplier);
     setUserAmount(DEFAULTS.userAmount);
     setUserLockYears(DEFAULTS.userLockYears);
@@ -205,8 +200,8 @@ function App() {
               <button
                 onClick={() => liveData && applyHistoricalRevenue(liveData.annualized)}
                 className={`p-3 rounded-lg transition-all hover:scale-105 ${liveData && annualRevenue === liveData.annualized
-                    ? 'bg-gradient-to-r from-emerald-500/30 to-green-500/30 border border-emerald-500'
-                    : 'bg-gradient-to-r from-emerald-900/30 to-green-900/30 hover:from-emerald-800/30 hover:to-green-800/30 border border-emerald-700'
+                  ? 'bg-gradient-to-r from-emerald-500/30 to-green-500/30 border border-emerald-500'
+                  : 'bg-gradient-to-r from-emerald-900/30 to-green-900/30 hover:from-emerald-800/30 hover:to-green-800/30 border border-emerald-700'
                   }`}
               >
                 <p className="text-lg font-bold text-emerald-400">2026</p>
@@ -325,29 +320,33 @@ function App() {
                 </div>
               </div>
 
-              {/* New sPENDLE Stakers - Percentage of available */}
+              {/* New sPENDLE Stakers - Raw number */}
               <div>
                 <div className="flex justify-between mb-2">
                   <div>
-                    <label className="text-gray-300">New sPENDLE Adoption</label>
-                    <p className="text-xs text-gray-500">% of available circulating supply</p>
+                    <label className="text-gray-300">New sPENDLE Locked</label>
+                    <p className="text-xs text-gray-500">Circulating: {formatNumber(KNOWN_DATA.circulatingSupply)}</p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-purple-400 font-mono">{sPendlePercent}%</span>
-                    <p className="text-xs text-gray-500">{formatNumber(totalSPendle)} PENDLE</p>
-                  </div>
+                  <EditableValue
+                    value={totalSPendle}
+                    onChange={setTotalSPendle}
+                    format={(v) => formatNumber(v) + ' PENDLE'}
+                    min={0}
+                    max={KNOWN_DATA.circulatingSupply}
+                    className="text-purple-400"
+                  />
                 </div>
                 <input
                   type="range"
                   min={0}
-                  max={100}
-                  step={1}
-                  value={sPendlePercent}
-                  onChange={(e) => setSPendlePercent(Number(e.target.value))}
+                  max={100_000_000}
+                  step={1_000_000}
+                  value={totalSPendle}
+                  onChange={(e) => setTotalSPendle(Number(e.target.value))}
                 />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0% (No adoption)</span>
-                  <span>100% ({formatNumber(MAX_SPENDLE_AVAILABLE)})</span>
+                  <span>0</span>
+                  <span>100M PENDLE</span>
                 </div>
               </div>
 

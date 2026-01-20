@@ -22,10 +22,11 @@ jobs:
           curl -s "https://api.llama.fi/summary/fees/pendle" > /tmp/pendle_raw.json
           
           # Extract relevant fields and format
+          # Use 30-day total × 12 for annualized (matches DefiLlama methodology)
           cat /tmp/pendle_raw.json | jq '{
             fetchedAt: now | todate,
             daily: .total24h,
-            annualized: (.total24h * 365),
+            annualized: (.total30d * 12),
             weeklyAvg: (.total7d / 7),
             monthlyTotal: .total30d,
             allTimeTotal: .totalAllTime,
