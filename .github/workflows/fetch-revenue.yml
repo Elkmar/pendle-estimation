@@ -1,0 +1,44 @@
+name: Fetch Revenue Data
+
+on:
+  schedule:
+    # Run daily at 6:00 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  fetch-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch DefiLlama data
+        run: |
+          # Fetch Pendle fees/revenue summary
+          curl -s "https://api.llama.fi/summary/fees/pendle" > /tmp/pendle_raw.json
+          
+          # Extract relevant fields and format
+          cat /tmp/pendle_raw.json | jq '{
+            fetchedAt: now | todate,
+            daily: .total24h,
+            annualized: (.total24h * 365),
+            weeklyAvg: (.total7d / 7),
+            monthlyTotal: .total30d,
+            allTimeTotal: .totalAllTime,
+            source: "DefiLlama"
+          }' > public/revenue-data.json
+          
+          echo "Revenue data fetched successfully:"
+          cat public/revenue-data.json
+
+      - name: Commit updated data
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/revenue-data.json
+          git diff --staged --quiet || git commit -m "chore: update revenue data $(date -u +%Y-%m-%d)"
+          git push
